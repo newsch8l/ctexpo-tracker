@@ -270,3 +270,10 @@ body{
   font-size: 13px;
 }
 .toast.show{opacity:1; transform: translateY(0)}
+
+
+.link-muted{color: rgba(17,24,39,.70)}
+.link-muted:hover{background: rgba(17,24,39,.06)}
+
+.link-danger{color: rgba(220,38,38,.95)}
+.link-danger:hover{background: rgba(220,38,38,.10); border-color: rgba(220,38,38,.18)}

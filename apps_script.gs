@@ -14,6 +14,7 @@
 const SPREADSHEET_ID = "PASTE_YOUR_SHEET_ID_HERE";
 const TASKS_SHEET_NAME = "Tasks";
 const WORKLOG_SHEET_NAME = "Worklog";
+const ARCHIVE_SHEET_NAME = "Archive";
 const TOKEN = "CHANGE_ME_TOKEN"; // set empty string to disable token check
 
 function _json(o){
@@ -53,6 +54,32 @@ function _rowToObj(headers, row){
     o[headers[i]] = row[i];
   }
   return o;
+}
+
+
+function _findRowByTaskId(sh, headers, taskId){
+  const idxId = headers.indexOf("task_id");
+  if (idxId < 0) throw new Error("Missing header: task_id");
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) return -1;
+  const ids = sh.getRange(2, idxId+1, lastRow-1, 1).getValues().flat().map(v=>String(v||""));
+  const pos = ids.indexOf(String(taskId||""));
+  return pos >= 0 ? (2 + pos) : -1;
+}
+
+function _ensureArchiveSheet(headers){
+  const ss = _ss();
+  let sh = ss.getSheetByName(ARCHIVE_SHEET_NAME);
+  if (!sh){
+    sh = ss.insertSheet(ARCHIVE_SHEET_NAME);
+    sh.getRange(1,1,1,headers.length).setValues([headers]);
+    return sh;
+  }
+  // If empty, set headers
+  if (sh.getLastRow() < 1){
+    sh.getRange(1,1,1,headers.length).setValues([headers]);
+  }
+  return sh;
 }
 
 function _nowISO(){
@@ -113,6 +140,48 @@ function doPost(e){
     const token = (payload.token || "").toString();
 
     if (!_checkToken(token)) return _deny("bad token");
+
+    
+    if (action === "archive"){
+      const taskId = (payload.task_id || payload.task?.task_id || "").toString().trim();
+      if (!taskId) throw new Error("task_id required");
+
+      const sh = _sheet(TASKS_SHEET_NAME);
+      const headers = _headers(sh);
+      const rowNum = _findRowByTaskId(sh, headers, taskId);
+      if (rowNum < 0) throw new Error("task not found");
+
+      const row = sh.getRange(rowNum, 1, 1, headers.length).getValues()[0];
+      const arch = _ensureArchiveSheet(headers);
+      // stamp archived_at if column exists, else keep as-is
+      arch.appendRow(row);
+      sh.deleteRow(rowNum);
+
+      const updatedAt = _nowISO();
+      const wl = _ss().getSheetByName(WORKLOG_SHEET_NAME);
+      if (wl){
+        wl.appendRow([updatedAt, taskId, action, "archived"]);
+      }
+      return _json({ ok:true });
+    }
+
+    if (action === "delete"){
+      const taskId = (payload.task_id || payload.task?.task_id || "").toString().trim();
+      if (!taskId) throw new Error("task_id required");
+
+      const sh = _sheet(TASKS_SHEET_NAME);
+      const headers = _headers(sh);
+      const rowNum = _findRowByTaskId(sh, headers, taskId);
+      if (rowNum < 0) throw new Error("task not found");
+      sh.deleteRow(rowNum);
+
+      const updatedAt = _nowISO();
+      const wl = _ss().getSheetByName(WORKLOG_SHEET_NAME);
+      if (wl){
+        wl.appendRow([updatedAt, taskId, action, "deleted"]);
+      }
+      return _json({ ok:true });
+    }
 
     if (action === "upsert"){
       const t = payload.task || {};

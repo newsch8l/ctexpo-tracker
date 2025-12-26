@@ -72,6 +72,32 @@ async function apiUpsertTask(task){
   return data.task;
 }
 
+async function apiArchiveTask(taskId){
+  const { url, token } = getApi();
+  const body = { action: "archive", token, task_id: taskId };
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (!data || data.ok !== true) throw new Error(data?.error || "Archive failed");
+  return true;
+}
+
+async function apiDeleteTask(taskId){
+  const { url, token } = getApi();
+  const body = { action: "delete", token, task_id: taskId };
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (!data || data.ok !== true) throw new Error(data?.error || "Delete failed");
+  return true;
+}
+
 function normalizeTask(t){
   const n = (v)=> (v === undefined || v === null) ? "" : String(v);
   const num = (v)=> {
@@ -299,6 +325,43 @@ function renderCard(t){
   edit.addEventListener("click", ()=> openModal(t));
 
   actions.appendChild(edit);
+
+  const archive = document.createElement("button");
+  archive.className = "link link-muted";
+  archive.type = "button";
+  archive.textContent = "Архив";
+  archive.addEventListener("click", async ()=>{
+    if (!t.task_id) return;
+    if (!confirm("Отправить задачу в архив? Она исчезнет из доски и появится на листе Archive.")) return;
+    try{
+      await apiArchiveTask(t.task_id);
+      toast("В архиве");
+      await reload();
+    }catch(err){
+      console.error(err);
+      toast("Не удалось архивировать");
+    }
+  });
+
+  const del = document.createElement("button");
+  del.className = "link link-danger";
+  del.type = "button";
+  del.textContent = "Удалить";
+  del.addEventListener("click", async ()=>{
+    if (!t.task_id) return;
+    if (!confirm("Удалить задачу НАВСЕГДА? Это действие нельзя отменить.")) return;
+    try{
+      await apiDeleteTask(t.task_id);
+      toast("Удалено");
+      await reload();
+    }catch(err){
+      console.error(err);
+      toast("Не удалось удалить");
+    }
+  });
+
+  actions.appendChild(archive);
+  actions.appendChild(del);
 
   card.appendChild(top);
   card.appendChild(meta);
