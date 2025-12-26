@@ -5,7 +5,7 @@
    - CT_API_TOKEN: shared token (optional but recommended)
 */
 
-const STATUSES = ["Backlog","Ready","In progress","Blocked","Done"];
+const STATUSES = ["Очередь","На запуск","Делаем","На стопе","Готово"];
 
 const els = {
   board: document.getElementById("board"),
@@ -84,7 +84,7 @@ function normalizeTask(t){
     item: n(t.item),
     operation: n(t.operation),
     workcenter: n(t.workcenter),
-    status: STATUSES.includes(n(t.status)) ? n(t.status) : "Backlog",
+    status: STATUSES.includes(n(t.status)) ? n(t.status) : "Очередь",
     assignee: n(t.assignee),
     priority: ["P1","P2","P3"].includes(n(t.priority)) ? n(t.priority) : "P2",
     due_date: n(t.due_date), // yyyy-mm-dd
@@ -113,7 +113,7 @@ function applyFilters(){
 
 function isOverdue(t){
   if (!t.due_date) return false;
-  if (t.status === "Done") return false;
+  if (t.status === "Готово") return false;
   const d = new Date(t.due_date + "T00:00:00");
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -127,8 +127,8 @@ function pctDone(t){
 }
 
 function statusDotClass(t){
-  if (t.status === "Blocked") return "dot blocked";
-  if (t.status === "Done") return "dot done";
+  if (t.status === "На стопе") return "dot blocked";
+  if (t.status === "Готово") return "dot done";
   if (t.priority === "P1") return "dot p1";
   return "dot";
 }
@@ -139,7 +139,7 @@ function render(){
   // stats
   els.count.textContent = String(state.filtered.length);
   els.overdue.textContent = String(state.filtered.filter(isOverdue).length);
-  els.blocked.textContent = String(state.filtered.filter(t=>t.status==="Blocked").length);
+  els.blocked.textContent = String(state.filtered.filter(t=>t.status==="На стопе").length);
 
   // filters options
   const wcs = Array.from(new Set(state.tasks.map(t=>t.workcenter).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ru"));
@@ -316,7 +316,7 @@ function openModal(t){
   f.item.value = t.item || "";
   f.operation.value = t.operation || "";
   f.workcenter.value = t.workcenter || "";
-  f.status.value = t.status || "Backlog";
+  f.status.value = t.status || "Очередь";
   f.assignee.value = t.assignee || "";
   f.priority.value = t.priority || "P2";
   f.due_date.value = t.due_date || "";
@@ -422,7 +422,7 @@ els.assignee.addEventListener("change", ()=>render());
 els.refresh.addEventListener("click", ()=>reload());
 
 els.newTask.addEventListener("click", ()=>{
-  openModal(normalizeTask({ task_id:"", status:"Backlog", priority:"P2" }));
+  openModal(normalizeTask({ task_id:"", status:"Очередь", priority:"P2" }));
 });
 
 els.form.addEventListener("submit", (e)=>{
