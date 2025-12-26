@@ -13,11 +13,13 @@ const els = {
   workcenter: document.getElementById("workcenter"),
   assignee: document.getElementById("assignee"),
   refresh: document.getElementById("refresh"),
+  archiveToggle: document.getElementById("archiveToggle"),
   newTask: document.getElementById("newTask"),
   conn: document.getElementById("conn"),
   count: document.getElementById("count"),
   overdue: document.getElementById("overdue"),
   blocked: document.getElementById("blocked"),
+  archiveCount: document.getElementById("archiveCount"),
   toast: document.getElementById("toast"),
   modal: document.getElementById("modal"),
   form: document.getElementById("form"),
@@ -28,6 +30,8 @@ let state = {
   tasks: [],
   filtered: [],
   draggingId: null,
+  mode: "board", // board | archive
+  archiveTotal: 0,
 };
 
 function toast(msg){
@@ -59,6 +63,31 @@ async function apiGetTasks(){
   return data.tasks;
 }
 
+async function apiGetArchiveTasks(){
+  const { url, token } = getApi();
+  const u = new URL(url);
+  u.searchParams.set("action","archive_tasks");
+  if (token) u.searchParams.set("token", token);
+  const r = await fetch(u.toString(), { method: "GET" });
+  if (!r.ok) throw new Error("API error: " + r.status);
+  const data = await r.json();
+  if (!data || !Array.isArray(data.tasks)) throw new Error("Bad payload");
+  return data.tasks;
+}
+
+async function apiRestoreTask(taskId){
+  const { url, token } = getApi();
+  const body = { action: "restore", token, task_id: taskId };
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (!data || data.ok !== true) throw new Error(data?.error || "Restore failed");
+  return true;
+}
+
 async function apiUpsertTask(task){
   const { url, token } = getApi();
   const body = { action: "upsert", token, task };
@@ -85,9 +114,9 @@ async function apiArchiveTask(taskId){
   return true;
 }
 
-async function apiDeleteTask(taskId){
+async function apiDeleteTask(taskId, from){
   const { url, token } = getApi();
-  const body = { action: "delete", token, task_id: taskId };
+  const body = { action: "delete", token, task_id: taskId, from: from || "tasks" };
   const r = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -159,7 +188,94 @@ function statusDotClass(t){
   return "dot";
 }
 
+
+function renderArchive(){
+  applyFilters();
+
+  els.count.textContent = String(state.filtered.length);
+  els.overdue.textContent = "0";
+  els.blocked.textContent = "0";
+
+  const wcs = Array.from(new Set(state.tasks.map(t=>t.workcenter).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ru"));
+  const asgs = Array.from(new Set(state.tasks.map(t=>t.assignee).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ru"));
+  fillSelect(els.workcenter, wcs, "Все участки");
+  fillSelect(els.assignee, asgs, "Все исполнители");
+
+  els.board.innerHTML = "";
+  const col = document.createElement("section");
+  col.className = "col";
+  const head = document.createElement("div");
+  head.className = "col-head";
+  head.innerHTML = '<div class="col-title"><span>Архив</span> <span class="badge">'+state.filtered.length+'</span></div>';
+  const body = document.createElement("div");
+  body.className = "col-body";
+
+  const list = state.filtered
+    .slice()
+    .sort((a,b)=> (b.updated_at||"").localeCompare(a.updated_at||"") || a.order_id.localeCompare(b.order_id,"ru"));
+
+  for (const t of list){
+    body.appendChild(renderArchiveCard(t));
+  }
+
+  col.appendChild(head);
+  col.appendChild(body);
+  els.board.appendChild(col);
+}
+
+function renderArchiveCard(t){
+  const card = renderCard(t);
+  const actions = card.querySelector(".card-actions");
+  if (actions){
+    const keep = actions.querySelector("button");
+    actions.innerHTML = "";
+    if (keep) actions.appendChild(keep);
+
+    const restore = document.createElement("button");
+    restore.className = "link";
+    restore.type = "button";
+    restore.textContent = "Восстановить";
+    restore.addEventListener("click", async ()=>{
+      if (!t.task_id) return;
+      if (!confirm("Вернуть задачу из архива обратно в доску?")) return;
+      try{
+        await apiRestoreTask(t.task_id);
+        toast("Возвращено в доску");
+        await reload();
+      }catch(err){
+        console.error(err);
+        toast("Не удалось восстановить");
+      }
+    });
+
+    const del = document.createElement("button");
+    del.className = "link link-danger";
+    del.type = "button";
+    del.textContent = "Удалить";
+    del.addEventListener("click", async ()=>{
+      if (!t.task_id) return;
+      if (!confirm("Удалить задачу НАВСЕГДА? Это действие нельзя отменить.")) return;
+      try{
+        await apiDeleteTask(t.task_id, "archive");
+        toast("Удалено");
+        await reload();
+      }catch(err){
+        console.error(err);
+        toast("Не удалось удалить");
+      }
+    });
+
+    actions.appendChild(restore);
+    actions.appendChild(del);
+  }
+  return card;
+}
+
 function render(){
+  if (state.mode === "archive"){
+    return renderArchive();
+  }
+
   applyFilters();
 
   // stats
@@ -351,7 +467,7 @@ function renderCard(t){
     if (!t.task_id) return;
     if (!confirm("Удалить задачу НАВСЕГДА? Это действие нельзя отменить.")) return;
     try{
-      await apiDeleteTask(t.task_id);
+      await apiDeleteTask(t.task_id, "tasks");
       toast("Удалено");
       await reload();
     }catch(err){
@@ -483,6 +599,11 @@ els.q.addEventListener("input", ()=>render());
 els.workcenter.addEventListener("change", ()=>render());
 els.assignee.addEventListener("change", ()=>render());
 els.refresh.addEventListener("click", ()=>reload());
+
+els.archiveToggle?.addEventListener("click", async ()=>{
+  state.mode = (state.mode === "board") ? "archive" : "board";
+  await reload();
+});
 
 els.newTask.addEventListener("click", ()=>{
   openModal(normalizeTask({ task_id:"", status:"Очередь", priority:"P2" }));
