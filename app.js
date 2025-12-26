@@ -34,6 +34,26 @@ let state = {
   archiveTotal: 0,
 };
 
+function setMode(nextMode){
+  state.mode = nextMode;
+
+  // Toggle button UI
+  if (els.archiveToggle){
+    const isArchive = state.mode === "archive";
+    els.archiveToggle.classList.toggle("is-active", isArchive);
+    els.archiveToggle.textContent = isArchive ? "Доска" : "Архив";
+    els.archiveToggle.setAttribute("aria-pressed", isArchive ? "true" : "false");
+    els.archiveToggle.title = isArchive ? "Вернуться на доску" : "Открыть архив";
+  }
+
+  // Make the archive counter pill feel clickable too
+  const archivePill = els.archiveCount?.closest?.(".pill");
+  if (archivePill){
+    archivePill.classList.add("is-link");
+    archivePill.title = "Открыть архив";
+  }
+}
+
 function toast(msg){
   els.toast.textContent = msg;
   els.toast.classList.add("show");
@@ -63,16 +83,16 @@ async function apiGetTasks(){
   return data.tasks;
 }
 
-async function apiGetArchiveTasks(){
-  const { url, token } = getApi();
-  const u = new URL(url);
-  u.searchParams.set("action","archive_tasks");
-  if (token) u.searchParams.set("token", token);
-  const r = await fetch(u.toString(), { method: "GET" });
-  if (!r.ok) throw new Error("API error: " + r.status);
-  const data = await r.json();
-  if (!data || !Array.isArray(data.tasks)) throw new Error("Bad payload");
-  return data.tasks;
+$1
+async function updateArchiveCount(){
+  try{
+    const tasks = await apiGetArchiveTasks();
+    const n = Array.isArray(tasks) ? tasks.length : 0;
+    state.archiveTotal = n;
+    if (els.archiveCount) els.archiveCount.textContent = String(n);
+  }catch(err){
+    // keep previous value; archive may be unavailable
+  }
 }
 
 async function apiRestoreTask(taskId){
@@ -552,11 +572,28 @@ async function reload(){
     renderEmpty();
     return;
   }
+
+  // Keep UI in sync with current mode (button label / pressed state)
+  setMode(state.mode);
+
   try{
     els.conn.textContent = "подключение…";
-    const tasks = await apiGetTasks();
+
+    const tasks = (state.mode === "archive")
+      ? await apiGetArchiveTasks()
+      : await apiGetTasks();
+
     state.tasks = tasks.map(normalizeTask);
     els.conn.textContent = "ок";
+
+    // Update archive counter (non-blocking when we're on the board)
+    if (state.mode === "archive"){
+      state.archiveTotal = state.tasks.length;
+      els.archiveCount.textContent = String(state.archiveTotal);
+    }else{
+      updateArchiveCount().catch(()=>{});
+    }
+
     render();
   }catch(err){
     console.error(err);
@@ -601,7 +638,8 @@ els.assignee.addEventListener("change", ()=>render());
 els.refresh.addEventListener("click", ()=>reload());
 
 els.archiveToggle?.addEventListener("click", async ()=>{
-  state.mode = (state.mode === "board") ? "archive" : "board";
+  const next = (state.mode === "board") ? "archive" : "board";
+  setMode(next);
 
   // reset filters to avoid "empty because filtered"
   if (els.q) els.q.value = "";
@@ -609,6 +647,20 @@ els.archiveToggle?.addEventListener("click", async ()=>{
   if (els.assignee) els.assignee.value = "";
 
   await reload();
+});
+
+// Click on "В архиве: N" also opens the archive view
+const archivePill = els.archiveCount?.closest?.(".pill");
+archivePill?.addEventListener("click", async ()=>{
+  if (state.mode !== "archive"){
+    setMode("archive");
+
+    if (els.q) els.q.value = "";
+    if (els.workcenter) els.workcenter.value = "";
+    if (els.assignee) els.assignee.value = "";
+
+    await reload();
+  }
 });
 
 els.newTask.addEventListener("click", ()=>{
@@ -625,6 +677,7 @@ window.addEventListener("keydown", (e)=>{
 });
 
 setupConfigHint();
+setMode(state.mode);
 // Modal close buttons (must bypass form validation)
 const closeModalBtn = document.getElementById("closeModal");
 const cancelModalBtn = document.getElementById("cancelModal");

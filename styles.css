@@ -91,6 +91,14 @@ body{
               rgba(17,24,39,.06);
   border-color: rgba(255,255,255,.20);
 }
+
+.btn.is-active{
+  background: rgba(17,24,39,.06);
+  border-color: rgba(17,24,39,.18);
+}
+
+.pill.is-link{cursor:pointer; user-select:none}
+.pill.is-link:hover{background: rgba(17,24,39,.04)}
 .icon-btn{
   cursor:pointer;
   width:36px; height:36px;
