@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CT-expo · Production Tracker (MVP)</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <meta name="color-scheme" content="light" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="logo-dot" aria-hidden="true"></div>
+      <div class="brand-text">
+        <div class="title">CT-expo · Production Tracker</div>
+        <div class="subtitle" id="subtitle">MVP на Google Sheets</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input id="q" class="input" placeholder="Поиск: наряд, изделие, операция…" />
+      <select id="workcenter" class="select">
+        <option value="">Все участки</option>
+      </select>
+      <select id="assignee" class="select">
+        <option value="">Все исполнители</option>
+      </select>
+      <button id="archiveToggle" class="btn">Архив</button>
+      <button id="refresh" class="btn">Обновить</button>
+      <button id="newTask" class="btn btn-accent">+ Задача</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="meta">
+      <div class="pill" id="pillStatus">Связь: <span id="conn">не настроено</span></div>
+      <div class="pill">Задач: <span id="count">0</span></div>
+      <div class="pill">В архиве: <span id="archiveCount">0</span></div>
+      <div class="pill">Просрочено: <span id="overdue">0</span></div>
+      <div class="pill">Заблокировано: <span id="blocked">0</span></div>
+    </section>
+
+    <section class="board" id="board" aria-label="Kanban board">
+      <!-- Columns injected by JS -->
+    </section>
+
+    <section class="toast" id="toast" role="status" aria-live="polite"></section>
+  </main>
+
+  <dialog class="modal" id="modal">
+    <form method="dialog" class="modal-card" id="form">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="modalTitle">Задача</div>
+          <div class="modal-sub" id="modalSub">Редактирование</div>
+        </div>
+        <button class="icon-btn" type="button" id="closeModal" aria-label="Закрыть">✕</button>
+      </div>
+
+      <div class="grid">
+        <label class="field">
+          <span>Наряд</span>
+          <input class="input" name="order_id" placeholder="Напр. 1052" required />
+        </label>
+
+        <label class="field">
+          <span>Изделие</span>
+          <input class="input" name="item" placeholder="Напр. GT 60x120" />
+        </label>
+
+        <label class="field">
+          <span>Операция</span>
+          <input class="input" name="operation" placeholder="Напр. Кромка" required />
+        </label>
+
+        <label class="field">
+          <span>Участок</span>
+          <input class="input" name="workcenter" placeholder="Напр. Кромка" required />
+        </label>
+
+        <label class="field">
+          <span>Статус</span>
+          <select class="select" name="status" required>
+            <option>Очередь</option>
+            <option>Готово к запуску</option>
+            <option>Делаем</option>
+            <option>На стопе</option>
+            <option>Готово</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Исполнитель</span>
+          <input class="input" name="assignee" placeholder="Имя/смена" />
+        </label>
+
+        <label class="field">
+          <span>Приоритет</span>
+          <select class="select" name="priority">
+            <option value="P2">P2 (обычный)</option>
+            <option value="P1">P1 (срочно)</option>
+            <option value="P3">P3 (когда будет окно)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Дедлайн</span>
+          <input class="input" name="due_date" type="date" />
+        </label>
+
+        <label class="field">
+          <span>План, мин</span>
+          <input class="input" name="planned_min" type="number" min="0" step="1" placeholder="0" />
+        </label>
+
+        <label class="field">
+          <span>Сделано, мин</span>
+          <input class="input" name="done_min" type="number" min="0" step="1" placeholder="0" />
+        </label>
+
+        <label class="field full">
+          <span>Комментарий / блокер</span>
+          <textarea class="textarea" name="note" rows="3" placeholder="Почему стопорится, что нужно, что уточнить…"></textarea>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" type="button" id="cancelModal">Отмена</button>
+        <button class="btn btn-accent" id="saveBtn" value="default">Сохранить</button>
+      </div>
+
+      <input type="hidden" name="task_id" />
+    </form>
+  </dialog>
+
+  <script src="./app.js"></script>
+</body>
+</html>
