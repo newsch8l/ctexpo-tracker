@@ -75,19 +75,6 @@ async function apiGetArchiveTasks(){
   return data.tasks;
 }
 
-async function apiArchiveTask(taskId){
-  const { url, token } = getApi();
-  const body = { action: "archive", token, task_id: taskId };
-  const r = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(body),
-  });
-  const data = await r.json();
-  if (!data || data.ok !== true) throw new Error(data?.error || "Archive failed");
-  return true;
-}
-
 async function apiRestoreTask(taskId){
   const { url, token } = getApi();
   const body = { action: "restore", token, task_id: taskId };
@@ -98,19 +85,6 @@ async function apiRestoreTask(taskId){
   });
   const data = await r.json();
   if (!data || data.ok !== true) throw new Error(data?.error || "Restore failed");
-  return true;
-}
-
-async function apiDeleteTask(taskId, from){
-  const { url, token } = getApi();
-  const body = { action: "delete", token, task_id: taskId, from: from || "tasks" };
-  const r = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(body),
-  });
-  const data = await r.json();
-  if (!data || data.ok !== true) throw new Error(data?.error || "Delete failed");
   return true;
 }
 
@@ -125,6 +99,32 @@ async function apiUpsertTask(task){
   const data = await r.json();
   if (!data || data.ok !== true) throw new Error(data?.error || "Update failed");
   return data.task;
+}
+
+async function apiArchiveTask(taskId){
+  const { url, token } = getApi();
+  const body = { action: "archive", token, task_id: taskId };
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (!data || data.ok !== true) throw new Error(data?.error || "Archive failed");
+  return true;
+}
+
+async function apiDeleteTask(taskId, from){
+  const { url, token } = getApi();
+  const body = { action: "delete", token, task_id: taskId, from: from || "tasks" };
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (!data || data.ok !== true) throw new Error(data?.error || "Delete failed");
+  return true;
 }
 
 function normalizeTask(t){
@@ -192,25 +192,21 @@ function statusDotClass(t){
 function renderArchive(){
   applyFilters();
 
-  // stats in archive mode
   els.count.textContent = String(state.filtered.length);
   els.overdue.textContent = "0";
   els.blocked.textContent = "0";
 
-  // refresh selects for available values
   const wcs = Array.from(new Set(state.tasks.map(t=>t.workcenter).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ru"));
   const asgs = Array.from(new Set(state.tasks.map(t=>t.assignee).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ru"));
   fillSelect(els.workcenter, wcs, "Все участки");
   fillSelect(els.assignee, asgs, "Все исполнители");
 
   els.board.innerHTML = "";
-
   const col = document.createElement("section");
   col.className = "col";
   const head = document.createElement("div");
   head.className = "col-head";
   head.innerHTML = '<div class="col-title"><span>Архив</span> <span class="badge">'+state.filtered.length+'</span></div>';
-
   const body = document.createElement("div");
   body.className = "col-body";
 
@@ -229,10 +225,9 @@ function renderArchive(){
 
 function renderArchiveCard(t){
   const card = renderCard(t);
-  // Replace actions: Открыть + Восстановить + Удалить
   const actions = card.querySelector(".card-actions");
   if (actions){
-    const keep = actions.querySelector("button"); // Открыть
+    const keep = actions.querySelector("button");
     actions.innerHTML = "";
     if (keep) actions.appendChild(keep);
 
@@ -247,7 +242,8 @@ function renderArchiveCard(t){
         await apiRestoreTask(t.task_id);
         toast("Возвращено в доску");
         await reload();
-      }catch(_e){
+      }catch(err){
+        console.error(err);
         toast("Не удалось восстановить");
       }
     });
@@ -263,7 +259,8 @@ function renderArchiveCard(t){
         await apiDeleteTask(t.task_id, "archive");
         toast("Удалено");
         await reload();
-      }catch(_e){
+      }catch(err){
+        console.error(err);
         toast("Не удалось удалить");
       }
     });
@@ -275,7 +272,9 @@ function renderArchiveCard(t){
 }
 
 function render(){
-  if (state.mode === "archive") return renderArchive();
+  if (state.mode === "archive"){
+    return renderArchive();
+  }
 
   applyFilters();
 
@@ -443,18 +442,19 @@ function renderCard(t){
 
   actions.appendChild(edit);
 
-  const arch = document.createElement("button");
-  arch.className = "link";
-  arch.type = "button";
-  arch.textContent = "Архив";
-  arch.addEventListener("click", async ()=>{
+  const archive = document.createElement("button");
+  archive.className = "link link-muted";
+  archive.type = "button";
+  archive.textContent = "Архив";
+  archive.addEventListener("click", async ()=>{
     if (!t.task_id) return;
-    if (!confirm("Отправить задачу в архив?")) return;
+    if (!confirm("Отправить задачу в архив? Она исчезнет из доски и появится на листе Archive.")) return;
     try{
       await apiArchiveTask(t.task_id);
-      toast("Перенесено в архив");
+      toast("В архиве");
       await reload();
-    }catch(_e){
+    }catch(err){
+      console.error(err);
       toast("Не удалось архивировать");
     }
   });
@@ -465,17 +465,18 @@ function renderCard(t){
   del.textContent = "Удалить";
   del.addEventListener("click", async ()=>{
     if (!t.task_id) return;
-    if (!confirm("Удалить задачу НАВСЕГДА?")) return;
+    if (!confirm("Удалить задачу НАВСЕГДА? Это действие нельзя отменить.")) return;
     try{
       await apiDeleteTask(t.task_id, "tasks");
       toast("Удалено");
       await reload();
-    }catch(_e){
+    }catch(err){
+      console.error(err);
       toast("Не удалось удалить");
     }
   });
 
-  actions.appendChild(arch);
+  actions.appendChild(archive);
   actions.appendChild(del);
 
   card.appendChild(top);
@@ -545,7 +546,6 @@ async function saveFromModal(){
   }
 }
 
-
 async function reload(){
   if (needConfig()){
     els.conn.textContent = "нужен API_URL";
@@ -554,36 +554,8 @@ async function reload(){
   }
   try{
     els.conn.textContent = "подключение…";
-
-    // Always try to get archive count
-    try{
-      const arch = await apiGetArchiveTasks();
-      state.archiveTotal = arch.length;
-      if (els.archiveCount) els.archiveCount.textContent = String(state.archiveTotal || 0);
-
-      if (state.mode === "archive"){
-        state.tasks = arch.map(normalizeTask);
-      }else{
-        const tasks = await apiGetTasks();
-        state.tasks = tasks.map(normalizeTask);
-      }
-    }catch(_e){
-      // If archive endpoint missing, still allow board mode to work
-      state.archiveTotal = 0;
-      if (els.archiveCount) els.archiveCount.textContent = "0";
-
-      if (state.mode === "archive"){
-        state.tasks = [];
-        toast("Архив недоступен: обнови развертывание Apps Script");
-      }else{
-        const tasks = await apiGetTasks();
-        state.tasks = tasks.map(normalizeTask);
-      }
-    }
-
-    if (els.archiveToggle) els.archiveToggle.textContent = (state.mode === "archive") ? "Доска" : "Архив";
-    if (els.newTask) els.newTask.style.display = (state.mode === "archive") ? "none" : "";
-
+    const tasks = await apiGetTasks();
+    state.tasks = tasks.map(normalizeTask);
     els.conn.textContent = "ок";
     render();
   }catch(err){
@@ -627,6 +599,17 @@ els.q.addEventListener("input", ()=>render());
 els.workcenter.addEventListener("change", ()=>render());
 els.assignee.addEventListener("change", ()=>render());
 els.refresh.addEventListener("click", ()=>reload());
+
+els.archiveToggle?.addEventListener("click", async ()=>{
+  state.mode = (state.mode === "board") ? "archive" : "board";
+
+  // reset filters to avoid "empty because filtered"
+  if (els.q) els.q.value = "";
+  if (els.workcenter) els.workcenter.value = "";
+  if (els.assignee) els.assignee.value = "";
+
+  await reload();
+});
 
 els.newTask.addEventListener("click", ()=>{
   openModal(normalizeTask({ task_id:"", status:"Очередь", priority:"P2" }));
