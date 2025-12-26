@@ -140,6 +140,8 @@ body{
   border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(251,251,252,.92));
   box-shadow: var(--shadow);
+  display:flex;
+  flex-direction:column;
   overflow:hidden;
   min-height: 320px;
 }
@@ -161,13 +163,20 @@ body{
   background: rgba(17,24,39,.03);
 }
 .col-body{
-  margin:0;
+  flex: 1;
+  min-height: 220px;
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
   background:
     radial-gradient(1000px 600px at 10% -10%, rgba(17,24,39,.06), transparent 55%),
     radial-gradient(1000px 600px at 90% -10%, rgba(17,24,39,.04), transparent 55%),
     var(--bg);
-  color:var(--text);
-  font-family:var(--font);
+  color: var(--text);
+  font-family: var(--font);
 }
 
 .card{
@@ -177,9 +186,10 @@ body{
               rgba(17,24,39,.03);
   padding: 12px 12px;
   box-shadow: 0 10px 22px rgba(17,24,39,.10);
+  cursor: grab;
 }
 .card:hover{border-color: rgba(255,255,255,.14)}
-.card.dragging{opacity:.55; transform: scale(.985)}
+.card.dragging{opacity:.55; transform: scale(.985); cursor: grabbing\}
 .card-top{
   display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
   margin-bottom: 8px;

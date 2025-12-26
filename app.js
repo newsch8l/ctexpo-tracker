@@ -337,13 +337,22 @@ function render(){
 
     const body = document.createElement("div");
     body.className = "col-body";
-    body.addEventListener("dragover", (e)=>{ e.preventDefault(); body.style.outline = "1px dashed rgba(255,255,255,.18)"; });
+    body.addEventListener("dragover", (e)=>{ e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = "move"; body.style.outline = "1px dashed rgba(255,255,255,.18)"; });
     body.addEventListener("dragleave", ()=>{ body.style.outline = ""; });
     body.addEventListener("drop", async (e)=>{
-      e.preventDefault();
-      body.style.outline = "";
-      if (!state.draggingId) return;
-      const t = state.tasks.find(x=>x.task_id===state.draggingId);
+  e.preventDefault();
+  body.style.outline = "";
+
+  const draggedId =
+    state.draggingId ||
+    (e && e.dataTransfer && typeof e.dataTransfer.getData === "function"
+      ? e.dataTransfer.getData("text/plain")
+      : "");
+
+  if (!draggedId) return;
+  state.draggingId = draggedId;
+
+  const t = state.tasks.find(x=>x.task_id===draggedId);
       if (!t) return;
       if (t.status === st) return;
       const before = t.status;
@@ -409,16 +418,25 @@ function renderCard(t){
   card.draggable = true;
   card.dataset.id = t.task_id;
 
-  card.addEventListener("dragstart", ()=>{
-    state.draggingId = t.task_id;
-    card.classList.add("dragging");
-  });
-  card.addEventListener("dragend", ()=>{
-    state.draggingId = null;
-    card.classList.remove("dragging");
-  });
+  card.addEventListener("dragstart", (e)=>{
+  state.draggingId = t.task_id;
 
-  const top = document.createElement("div");
+  // Cross‑browser: some engines require a payload in dataTransfer
+  if (e && e.dataTransfer){
+    try{
+      e.dataTransfer.setData("text/plain", t.task_id || "");
+      e.dataTransfer.effectAllowed = "move";
+    }catch(_){}
+  }
+
+  card.classList.add("dragging");
+});
+
+card.addEventListener("dragend", ()=>{
+  state.draggingId = null;
+  card.classList.remove("dragging");
+});
+const top = document.createElement("div");
   top.className = "card-top";
 
   const left = document.createElement("div");
