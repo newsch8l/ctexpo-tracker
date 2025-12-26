@@ -83,6 +83,19 @@ async function apiGetTasks(){
   return data.tasks;
 }
 
+async function apiGetArchiveTasks(){
+  const { url, token } = getApi();
+  const u = new URL(url);
+  u.searchParams.set("action","archive_tasks");
+  if (token) u.searchParams.set("token", token);
+  const r = await fetch(u.toString(), { method: "GET" });
+  if (!r.ok) throw new Error("API error: " + r.status);
+  const data = await r.json();
+  if (!data || !Array.isArray(data.tasks)) throw new Error("Bad payload");
+  return data.tasks;
+}
+
+
 async function updateArchiveCount(){
   try{
     const tasks = await apiGetArchiveTasks();
