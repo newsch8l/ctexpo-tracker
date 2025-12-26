@@ -1,29 +1,37 @@
 /* CT-expo MVP Tracker — clean dark UI */
 :root{
-  --bg:#0a0a0a;
-  --card:#101010;
-  --card2:#0d0d0d;
-  --text:#e0e0e0;
-  --muted:#8a8a8a;
-  --border:#1a1a1a;
-  --accent:#ffffff;
-  --danger:#ff4d4d;
-  --warn:#ffb020;
-  --ok:#6ee7b7;
-  --shadow: 0 12px 32px rgba(0,0,0,.35);
+  --bg:#f6f7f9;
+  --card:#ffffff;
+  --card2:#fbfbfc;
+  --text:#121316;
+  --muted:#6b7280;
+  --border:#e6e7eb;
+  --accent:#111827;
+  --danger:#dc2626;
+  --warn:#f59e0b;
+  --ok:#10b981;
+  --shadow: 0 12px 28px rgba(17,24,39,.10);
   --radius: 18px;
   --radius2: 22px;
   --gap: 14px;
   --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", Helvetica;
 }
-
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{
+  margin:0;
+  background:
+    radial-gradient(1000px 600px at 10% -10%, rgba(17,24,39,.06), transparent 55%),
+    radial-gradient(1000px 600px at 90% -10%, rgba(17,24,39,.04), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--font);
+}
 body{
   margin:0;
-  background: radial-gradient(1200px 700px at 20% -10%, rgba(255,255,255,.06), transparent 55%),
-              radial-gradient(1200px 700px at 80% -10%, rgba(255,255,255,.04), transparent 55%),
-              var(--bg);
+  background:
+    radial-gradient(1000px 600px at 10% -10%, rgba(17,24,39,.06), transparent 55%),
+    radial-gradient(1000px 600px at 90% -10%, rgba(17,24,39,.04), transparent 55%),
+    var(--bg);
   color:var(--text);
   font-family:var(--font);
 }
@@ -33,7 +41,7 @@ body{
   display:flex; gap:16px; align-items:center; justify-content:space-between;
   padding: 16px 16px;
   border-bottom:1px solid var(--border);
-  background: linear-gradient(180deg, rgba(10,10,10,.92), rgba(10,10,10,.70));
+  background: linear-gradient(180deg, rgba(246,247,249,.92), rgba(246,247,249,.72));
   backdrop-filter: blur(10px);
 }
 
@@ -54,7 +62,7 @@ body{
 .wrap{padding:16px; max-width: 1400px; margin: 0 auto;}
 
 .input,.select,.textarea{
-  background: rgba(255,255,255,.03);
+  background: rgba(17,24,39,.03);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 14px;
@@ -62,25 +70,25 @@ body{
   outline: none;
   transition: border-color .15s ease, background .15s ease, transform .15s ease;
 }
-.input::placeholder, .textarea::placeholder{color: rgba(224,224,224,.38)}
-.input:focus,.select:focus,.textarea:focus{border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.05)}
+.input::placeholder, .textarea::placeholder{color: rgba(17,24,39,.35)}
+.input:focus,.select:focus,.textarea:focus{border-color: rgba(255,255,255,.22); background: rgba(17,24,39,.04)}
 .select{padding-right: 34px}
 .textarea{resize: vertical}
 
 .btn{
   cursor:pointer;
   border:1px solid var(--border);
-  background: rgba(255,255,255,.03);
+  background: rgba(17,24,39,.03);
   color:var(--text);
   padding: 10px 12px;
   border-radius: 14px;
   transition: transform .12s ease, border-color .15s ease, background .15s ease;
 }
-.btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.05)}
+.btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18); background: rgba(17,24,39,.04)}
 .btn:active{transform: translateY(0)}
 .btn-accent{
   background: radial-gradient(ellipse 60% 80% at 50% 10%, rgba(255,255,255,.18), transparent 60%),
-              rgba(255,255,255,.08);
+              rgba(17,24,39,.06);
   border-color: rgba(255,255,255,.20);
 }
 .icon-btn{
@@ -88,7 +96,7 @@ body{
   width:36px; height:36px;
   border-radius: 12px;
   border:1px solid var(--border);
-  background: rgba(255,255,255,.03);
+  background: rgba(17,24,39,.03);
   color: var(--text);
 }
 
@@ -100,8 +108,8 @@ body{
   padding: 8px 10px;
   border-radius: 999px;
   border:1px solid var(--border);
-  background: rgba(255,255,255,.03);
-  color: rgba(224,224,224,.85);
+  background: rgba(17,24,39,.03);
+  color: rgba(17,24,39,.82);
   font-size: 13px;
 }
 
@@ -122,7 +130,7 @@ body{
 .col{
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(16,16,16,.9), rgba(13,13,13,.9));
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(251,251,252,.92));
   box-shadow: var(--shadow);
   overflow:hidden;
   min-height: 320px;
@@ -138,21 +146,29 @@ body{
 }
 .badge{
   font-size:12px;
-  color: rgba(224,224,224,.75);
+  color: rgba(17,24,39,.62);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 2px 8px;
-  background: rgba(255,255,255,.03);
+  background: rgba(17,24,39,.03);
 }
-.col-body{padding: 10px; display:flex; flex-direction:column; gap:10px; min-height: 220px}
+.col-body{
+  margin:0;
+  background:
+    radial-gradient(1000px 600px at 10% -10%, rgba(17,24,39,.06), transparent 55%),
+    radial-gradient(1000px 600px at 90% -10%, rgba(17,24,39,.04), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--font);
+}
 
 .card{
   border: 1px solid var(--border);
   border-radius: var(--radius2);
-  background: radial-gradient(ellipse 70% 100% at 50% 0%, rgba(255,255,255,.06), transparent 60%),
-              rgba(255,255,255,.03);
+  background: radial-gradient(ellipse 70% 100% at 50% 0%, rgba(17,24,39,.06), transparent 60%),
+              rgba(17,24,39,.03);
   padding: 12px 12px;
-  box-shadow: 0 10px 22px rgba(0,0,0,.22);
+  box-shadow: 0 10px 22px rgba(17,24,39,.10);
 }
 .card:hover{border-color: rgba(255,255,255,.14)}
 .card.dragging{opacity:.55; transform: scale(.985)}
@@ -160,9 +176,9 @@ body{
   display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
   margin-bottom: 8px;
 }
-.kicker{color: rgba(224,224,224,.75); font-size: 12px}
+.kicker{color: rgba(17,24,39,.62); font-size: 12px}
 .h1{font-weight: 800; letter-spacing:.2px}
-.small{font-size: 12px; color: rgba(224,224,224,.70)}
+.small{font-size: 12px; color: rgba(17,24,39,.55)}
 .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
 .dot{
   width:8px; height:8px; border-radius:50%;
@@ -175,8 +191,8 @@ body{
 .kv{display:flex; align-items:center; gap:8px}
 .progress{
   height: 8px; border-radius: 999px; overflow:hidden;
-  background: rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.08);
+  background: rgba(17,24,39,.06);
+  border:1px solid rgba(17,24,39,.06);
   margin-top: 8px;
 }
 .progress > i{
@@ -197,16 +213,16 @@ body{
   padding: 6px 8px;
   border-radius: 12px;
 }
-.link:hover{background: rgba(255,255,255,.06)}
+.link:hover{background: rgba(17,24,39,.06)}
 
 .modal{border:none; padding:0; background: transparent}
-.modal::backdrop{background: rgba(0,0,0,.55); backdrop-filter: blur(2px)}
+.modal::backdrop{background: rgba(17,24,39,.18); backdrop-filter: blur(2px)}
 .modal-card{
   width: min(860px, calc(100vw - 24px));
   border-radius: 22px;
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(16,16,16,.96), rgba(12,12,12,.96));
-  box-shadow: 0 22px 60px rgba(0,0,0,.55);
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(251,251,252,.98));
+  box-shadow: 0 22px 60px rgba(17,24,39,.18);
   padding: 14px;
 }
 .modal-head{
@@ -227,7 +243,7 @@ body{
   .grid{grid-template-columns: 1fr}
 }
 .field{display:flex; flex-direction:column; gap:7px}
-.field > span{color: rgba(224,224,224,.70); font-size: 12px}
+.field > span{color: rgba(17,24,39,.55); font-size: 12px}
 .field.full{grid-column: 1 / -1}
 
 .modal-actions{
@@ -243,14 +259,14 @@ body{
   padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: rgba(16,16,16,.92);
-  box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 16px 40px rgba(17,24,39,.12);
   opacity: 0;
   pointer-events:none;
   transform: translateY(10px);
   transition: opacity .2s ease, transform .2s ease;
   max-width: min(480px, calc(100vw - 32px));
-  color: rgba(224,224,224,.9);
+  color: rgba(17,24,39,.88);
   font-size: 13px;
 }
 .toast.show{opacity:1; transform: translateY(0)}

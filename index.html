@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CT-expo · Production Tracker (MVP)</title>
   <link rel="stylesheet" href="./styles.css" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="color-scheme" content="light" />
 </head>
 <body>
   <header class="top">
@@ -52,7 +52,7 @@
           <div class="modal-title" id="modalTitle">Задача</div>
           <div class="modal-sub" id="modalSub">Редактирование</div>
         </div>
-        <button class="icon-btn" value="cancel" aria-label="Закрыть">✕</button>
+        <button class="icon-btn" type="button" id="closeModal" aria-label="Закрыть">✕</button>
       </div>
 
       <div class="grid">
@@ -123,7 +123,7 @@
       </div>
 
       <div class="modal-actions">
-        <button class="btn" value="cancel">Отмена</button>
+        <button class="btn" type="button" id="cancelModal">Отмена</button>
         <button class="btn btn-accent" id="saveBtn" value="default">Сохранить</button>
       </div>
 

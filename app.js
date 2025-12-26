@@ -435,4 +435,16 @@ window.addEventListener("keydown", (e)=>{
 });
 
 setupConfigHint();
+// Modal close buttons (must bypass form validation)
+const closeModalBtn = document.getElementById("closeModal");
+const cancelModalBtn = document.getElementById("cancelModal");
+if (closeModalBtn) closeModalBtn.addEventListener("click", () => els.modal.close());
+if (cancelModalBtn) cancelModalBtn.addEventListener("click", () => els.modal.close());
+
+// Allow native ESC to close without validation
+els.modal.addEventListener("cancel", (e) => {
+  e.preventDefault();
+  els.modal.close();
+});
+
 reload();
