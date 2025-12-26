@@ -5,7 +5,7 @@
    - CT_API_TOKEN: shared token (optional but recommended)
 */
 
-const STATUSES = ["Очередь","На запуск","Делаем","На стопе","Готово"];
+const STATUSES = ["Очередь","Готово к запуску","Делаем","На стопе","Готово"];
 
 const els = {
   board: document.getElementById("board"),
