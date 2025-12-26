@@ -83,7 +83,6 @@ async function apiGetTasks(){
   return data.tasks;
 }
 
-$1
 async function updateArchiveCount(){
   try{
     const tasks = await apiGetArchiveTasks();
