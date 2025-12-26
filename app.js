@@ -602,6 +602,12 @@ els.refresh.addEventListener("click", ()=>reload());
 
 els.archiveToggle?.addEventListener("click", async ()=>{
   state.mode = (state.mode === "board") ? "archive" : "board";
+
+  // Reset filters/search when switching view to avoid "empty because filtered"
+  if (els.q) els.q.value = "";
+  if (els.workcenter) els.workcenter.value = "";
+  if (els.assignee) els.assignee.value = "";
+
   await reload();
 });
 
